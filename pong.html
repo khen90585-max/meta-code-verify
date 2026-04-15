@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: black; }
+        canvas { border: 1px solid white; }
+        #scoreboard { color: white; position: absolute; top: 10px; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">Player: 0 Opponent: 0</div>
+    <canvas id="pong" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("pong");
+        const context = canvas.getContext("2d");
+
+        const paddleWidth = 10, paddleHeight = 100, ballSize = 10;
+        let user = { x: 0, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, score: 0 };
+        let opponent = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, score: 0 };
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: ballSize, speed: 5, velocityX: 5, velocityY: 5 };
+
+        function drawRect(x, y, w, h, color) {
+            context.fillStyle = color;
+            context.fillRect(x, y, w, h);
+        }
+
+        function drawArc(x, y, radius, color) {
+            context.fillStyle = color;
+            context.beginPath();
+            context.arc(x, y, radius, 0, Math.PI * 2, false);
+            context.closePath();
+            context.fill();
+        }
+
+        function render() {
+            drawRect(0, 0, canvas.width, canvas.height, "black");
+            drawRect(user.x, user.y, user.width, user.height, "white");
+            drawRect(opponent.x, opponent.y, opponent.width, opponent.height, "white");
+            drawArc(ball.x, ball.y, ball.radius, "white");
+            document.getElementById('scoreboard').innerText = `Player: ${user.score} Opponent: ${opponent.score}`;
+        }
+
+        function update() {
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+
+            if (ball.y + ball.radius >= canvas.height || ball.y - ball.radius <= 0) {
+                ball.velocityY = -ball.velocityY;
+            }
+
+            let player = (ball.x < canvas.width / 2) ? user : opponent;
+
+            if (ball.x - ball.radius <= user.x + user.width && ball.y > user.y && ball.y < user.y + user.height) {
+                ball.velocityX = -ball.velocityX;
+            } else if (ball.x + ball.radius >= opponent.x && ball.y > opponent.y && ball.y < opponent.y + opponent.height) {
+                ball.velocityX = -ball.velocityX;
+            }
+
+            if (ball.x + ball.radius < 0) {
+                opponent.score++;
+                resetBall();
+            } else if (ball.x - ball.radius > canvas.width) {
+                user.score++;
+                resetBall();
+            }
+
+            opponentAI();
+        }
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.velocityX = -ball.velocityX;
+        }
+
+        function opponentAI() {
+            const centerPaddle = opponent.y + opponent.height / 2;
+            if (centerPaddle < ball.y) {
+                opponent.y += 4;
+            } else {
+                opponent.y -= 4;
+            }
+        }
+
+        function gameLoop() {
+            render();
+            update();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener("mousemove", (event) => {
+            const rect = canvas.getBoundingClientRect();
+            user.y = event.clientY - rect.top - user.height / 2;
+        });
+
+        document.addEventListener("keydown", (event) => {
+            switch(event.key) {
+                case "ArrowUp":
+                    user.y = Math.max(0, user.y - 20);
+                    break;
+                case "ArrowDown":
+                    user.y = Math.min(canvas.height - user.height, user.y + 20);
+                    break;
+            }
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
