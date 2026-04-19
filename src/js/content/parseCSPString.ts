@@ -6,12 +6,12 @@
  */
 
 export function parseCSPString(csp: string): Map<string, Set<string>> {
-  const directiveStrings = csp.split(';').filter(Boolean);
+  const directiveStrings = csp
+    .split(';')
+    .map(directiveString => directiveString.trim())
+    .filter(Boolean);
   return directiveStrings.reduce((map, directiveString) => {
-    const [directive, ...values] = directiveString
-      .trim()
-      .toLowerCase()
-      .split(/\s+/);
+    const [directive, ...values] = directiveString.toLowerCase().split(/\s+/);
     // Ignore subsequent keys for a directive, if it's specified more than once
     if (!map.has(directive)) {
       map.set(directive, new Set(values));

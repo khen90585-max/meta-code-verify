@@ -79,4 +79,17 @@ describe('parseCSPString', () => {
       ]),
     );
   });
+
+  it('Ignores empty directives created by extra semicolons/whitespace', () => {
+    expect(
+      parseCSPString(
+        `;   ; default-src 'self';   ; script-src 'none'; ;\n\t ;`,
+      ),
+    ).toEqual(
+      new Map([
+        ['default-src', new Set(["'self'"])],
+        ['script-src', new Set(["'none'"])],
+      ]),
+    );
+  });
 });
